@@ -30,9 +30,13 @@ public class Magic {
     String bigString;
     StringBuilder builder;
     int temp = 0;
+    File inputFile;
+    File saveFile;
 
-    void doMagic(File file, String msg) {
+    void doMagic(File file, File saveFile, String msg) {
+        this.inputFile = file;
         this.msg = msg;
+        this.saveFile = saveFile;
         try {
             inputImage = ImageIO.read(file);
         } catch (IOException ex) {
@@ -83,18 +87,25 @@ public class Magic {
         System.out.println(bigString);
 
         loop:
-        for (int i = 0; i < inputImage.getWidth(); i++) { // KAN VARA INVERTERAD? JAG VETINTE
-            for (int j = 0; j < inputImage.getHeight(); j++) {
+        for (int i = 0; i < inputImage.getHeight(); i++) { // KAN VARA INVERTERAD? JAG VETINTE
+            for (int j = 0; j < inputImage.getWidth(); j++) {
 
-                if (temp <= bigString.length() - 1) {
+                if (temp < bigString.length()) {
                     int c = bigString.charAt(temp) - 48;
-                    outputImage.setRGB(i, j, pixelColors[i][j] & c);
+                    outputImage.setRGB(i, j, inputImage.getRGB(i, j) - (inputImage.getRGB(i, j) % 2) + c);
+                    System.out.println("Set pixel (" + i + ", " + j +") to " + inputImage.getRGB(i, j));
                     temp++;
-                    System.out.println("Hej");
+                    
                 } else {
-                    break loop;
+                    outputImage.setRGB(i, j, inputImage.getRGB(i, j) /*& c*/);
+                    
                 }
             }
+        }
+        try {
+            ImageIO.write(outputImage, "png", saveFile);
+        } catch (IOException ex) {
+            Logger.getLogger(Magic.class.getName()).log(Level.SEVERE, null, ex);
         }
         System.out.println("Done");
     }
@@ -110,21 +121,19 @@ public class Magic {
         char[] chars = new char[finishedString.length() / 8];
         int temp2 = 0;
 
-        
-            for (int i = 0; i < finishedString.length(); i += 8) {
-                if (i + 8 <= finishedString.length()) {
-                    System.out.println(i + " " + (i+8));
-                    System.out.println(finishedString.substring(i, i+8));
-                    System.out.println(Integer.parseInt(finishedString.substring(i, i+8),2));
-                    System.out.println((char)Integer.parseInt(finishedString.substring(i, i+8),2));
-                    chars[temp2] = (char)Integer.parseInt(finishedString.substring(i, i+8),2);
-                }
-                temp2 ++;
+        for (int i = 0; i < finishedString.length(); i += 8) {
+            if (i + 8 <= finishedString.length()) {
+                System.out.println(i + " " + (i + 8));
+                System.out.println(finishedString.substring(i, i + 8));
+                System.out.println(Integer.parseInt(finishedString.substring(i, i + 8), 2));
+                System.out.println((char) Integer.parseInt(finishedString.substring(i, i + 8), 2));
+                chars[temp2] = (char) Integer.parseInt(finishedString.substring(i, i + 8), 2);
             }
+            temp2++;
+        }
 
-        
         return new String(chars);
-        
+
     }
 
 }

@@ -30,6 +30,7 @@ public class Gui extends javax.swing.JFrame {
     String msg;
     Magic Magic = new Magic();
     File directory;
+    File saveFile;
 
     /**
      * Creates new form Gui
@@ -210,8 +211,13 @@ public class Gui extends javax.swing.JFrame {
     }//GEN-LAST:event_buttonFileChooserActionPerformed
 
     private void buttonHideTextActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_buttonHideTextActionPerformed
+        int returnVal2 = fileSaver.showSaveDialog(this);
+        if (returnVal2 == JFileChooser.APPROVE_OPTION){
+            saveFile = new File(fileSaver.getSelectedFile() + ".png");
+        }
+                
         msg = editorPanel.getText();
-        Magic.doMagic(file, msg);
+        Magic.doMagic(file, saveFile, msg);
     }//GEN-LAST:event_buttonHideTextActionPerformed
 
     private void editorPanelKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_editorPanelKeyReleased
