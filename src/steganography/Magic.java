@@ -5,6 +5,7 @@
  */
 package steganography;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import static java.awt.image.BufferedImage.TYPE_INT_ARGB;
 import java.io.File;
@@ -32,6 +33,7 @@ public class Magic {
     int temp = 0;
     File inputFile;
     File saveFile;
+    Color colour;
 
     void doMagic(File file, File saveFile, String msg) {
         this.inputFile = file;
@@ -43,13 +45,6 @@ public class Magic {
             Logger.getLogger(Magic.class.getName()).log(Level.SEVERE, null, ex);
         }
         outputImage = new BufferedImage(inputImage.getWidth(), inputImage.getHeight(), TYPE_INT_ARGB);
-        pixelColors = new int[inputImage.getWidth()][inputImage.getHeight()];
-
-        for (int i = 0; i < inputImage.getWidth(); i++) {
-            for (int j = 0; j < inputImage.getHeight(); j++) {
-                pixelColors[i][j] = getPixelAt(i, j);
-            }
-        }
 
 //        int color = pixelColors[9][0];
 //
@@ -69,15 +64,12 @@ public class Magic {
 
     }
 
-    int getPixelAt(int x, int y) {
-        return inputImage.getRGB(x, y);
-    }
-
     void setNewPixels() {
         byte[] bytes = msg.getBytes(StandardCharsets.UTF_8);
         builder = new StringBuilder();
+        
         for (byte b : bytes) {
-
+            //get leading zeroes for bytes
             String format = String.format("%%0%dd", 8);
             String result = String.format(format, Integer.parseInt(Integer.toBinaryString(b)));
 
@@ -86,20 +78,27 @@ public class Magic {
         bigString = builder.toString();
         System.out.println(bigString);
 
-        loop:
-        for (int i = 0; i < inputImage.getHeight(); i++) { // KAN VARA INVERTERAD? JAG VETINTE
-            for (int j = 0; j < inputImage.getWidth(); j++) {
+        for (int i = 0; i < inputImage.getWidth() -1; i++) { // KAN VARA INVERTERAD? JAG VETINTE
+            for (int j = 0; j < inputImage.getHeight() -1; j++) {
 
                 if (temp < bigString.length()) {
-                    int c = bigString.charAt(temp) - 48;
-                    outputImage.setRGB(i, j, inputImage.getRGB(i, j) - (inputImage.getRGB(i, j) % 2) + c);
-                    System.out.println("Set pixel (" + i + ", " + j +") to " + inputImage.getRGB(i, j));
-                    temp++;
+                    int c = bigString.charAt(temp) - 48; //either 0 or 1 
                     
+                    colour = new Color(inputImage.getRGB(i, j));
+                    Color finishedColour = calcNewColor(colour, c);
+                    outputImage.setRGB(i, j, finishedColour.getRGB());
+                    String oldcolor = Integer.toString(inputImage.getRGB(i, j),2);
+                    
+                    System.out.println("Red: " + colour.getRed() + " green: " + colour.getGreen() + " blue: " + colour.getBlue());
+                    System.out.println("Old Pixel: " + oldcolor);
+                    System.out.println("Set pixel (" + i + ", " + j + ") to " + Integer.toString(finishedColour.getRGB(),2));
+
                 } else {
-                    outputImage.setRGB(i, j, inputImage.getRGB(i, j) /*& c*/);
-                    
+                    System.out.println("nr 1");
+                    outputImage.setRGB(i, j, inputImage.getRGB(i, j)); //FEL HÄR VID STORA BILDER
+                    System.out.println("nr 2");
                 }
+                temp++;
             }
         }
         try {
@@ -134,6 +133,24 @@ public class Magic {
 
         return new String(chars);
 
+    }
+
+    private Color calcNewColor(Color oldcolor, int b) {
+        
+        if(b <= 1){
+
+            int minus = Math.abs(oldcolor.getRGB() % 2);
+            
+            Color test = new Color(oldcolor.getRGB() - minus + b);
+            
+            System.out.println("minus = " + minus);
+            System.out.println(" b = " +b);
+            System.out.println(test.toString());
+            return test;
+            
+        }
+        System.out.println("ERRRRRROOOOOOOORRRRRRRR");
+         return new Color(0);
     }
 
 }
